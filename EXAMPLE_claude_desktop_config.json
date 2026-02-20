@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "count-r": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "count_vowels": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "fibonnaci": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "message_cFS": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    }
+  },
+  "preferences": {
+    "coworkScheduledTasksEnabled": false,
+    "sidebarMode": "chat"
+  }
+}

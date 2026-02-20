@@ -88,8 +88,7 @@ def send_ci_lab(packet: bytes, target_ip: str = TARGET_IP, port: int = CI_LAB_UD
     finally:
         sock.close()
 
-
-if __name__ == "__main__":
+def message_cFS() -> str:
     # From your Ubuntu VM:
     #   DEFAULT_CFE_MISSION_ES_CMD_TOPICID = 6
     ES_CMD_TOPICID = 6
@@ -106,4 +105,7 @@ if __name__ == "__main__":
         f"(MID=0x{EXAMPLE_MID:04X}, CC={EXAMPLE_CMD_CODE}) ..."
     )
     send_ci_lab(pkt)
-    print("Sent.")
+    return "Sent."
+
+if __name__ == "__main__":
+    message_cFS()

@@ -1,0 +1,20 @@
+# Secrets and keys
+secrets/
+*.pem
+*.key
+
+# Local configuration (each team member sets their own)
+config.py
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

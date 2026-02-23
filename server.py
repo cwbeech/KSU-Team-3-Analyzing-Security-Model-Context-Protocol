@@ -2,7 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import time
 import signal
 import sys
-import mcp_server
+import cfs_commands
 
 def signal_handler(sig, frame):
     print("Shutting down server gracefully")
@@ -53,8 +53,48 @@ def fibonacci(n: int) -> int:
 @mcp.tool()
 def message_cFS() -> str:
     try:
-        return mcp_server.message_cFS()
+        return cfs_commands.message_cFS()
     except Exception as e:
+        return "Error"
+
+@mcp.tool()
+def sample_noop() -> str:
+    try:
+        return cfs_commands.sample_app_noop()
+    except Exception:
+        return "Error"
+
+@mcp.tool()
+def sample_reset_counters() -> str:
+    try:
+        return cfs_commands.sample_app_reset_counters()
+    except Exception:
+        return "Error"
+
+@mcp.tool()
+def sample_process() -> str:
+    try:
+        return cfs_commands.sample_app_process()
+    except Exception:
+        return "Error"
+
+@mcp.tool()
+def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
+    """Send sample_app DISPLAY_PARAM (requires correct SAMPLE_APP_MISSION_STRING_VAL_LEN in cfs_commands.py)."""
+    try:
+        return cfs_commands.sample_app_display_param(val_u32=val_u32, val_i16=val_i16, val_str=val_str)
+    except Exception:
+        return "Error"
+
+@mcp.tool()
+def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
+    """Movement demo command.
+
+    NOTE: Requires you to add CC=4 (or whatever you choose) in sample_app on the VM.
+    """
+    try:
+        return cfs_commands.set_attitude_demo(yaw_deg=yaw_deg, pitch_deg=pitch_deg, roll_deg=roll_deg)
+    except Exception:
         return "Error"
 
 if __name__ == "__main__":

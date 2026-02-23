@@ -1,9 +1,15 @@
 import socket
 import struct
 
-# Configuration
-TARGET_IP = "192.168.136.128"  # Ubuntu VM IP
-CI_LAB_UDP_PORT = 1234  # cFS CI_Lab UDP port
+# Import configuration from local config file (not committed to git)
+# Each team member sets their own VM IP in config.py
+try:
+    from config import TARGET_IP, CI_LAB_UDP_PORT
+except ImportError:
+    # Fallback defaults if config.py doesn't exist
+    print("WARNING: config.py not found. Copy config.example.py to config.py and set your VM IP.")
+    TARGET_IP = "192.168.136.129"
+    CI_LAB_UDP_PORT = 1234
 
 # --- cFS MID mapping (derived from cfe/modules/core_api/config/default_cfe_core_api_msgid_mapping.h) ---
 # From your grep output:
@@ -12,6 +18,21 @@ CI_LAB_UDP_PORT = 1234  # cFS CI_Lab UDP port
 # We still need CMD base MID value. In many default cFS configs, CMD base is 0x1800.
 # If your mission differs, update CFE_PLATFORM_CMD_BASE_MID.
 CFE_PLATFORM_CMD_BASE_MID = 0x1800
+
+# --- sample_app IDs (from your VM headers) ---
+# sample_app topicids.h: DEFAULT_SAMPLE_APP_MISSION_CMD_TOPICID = 0x82
+SAMPLE_APP_CMD_TOPICID = 0x82
+SAMPLE_APP_CMD_MID = (CFE_PLATFORM_CMD_BASE_MID | SAMPLE_APP_CMD_TOPICID)
+
+# sample_app fcncode values: NOOP=0, RESET_COUNTERS=1, PROCESS=2, DISPLAY_PARAM=3
+SAMPLE_APP_NOOP_CC = 0
+SAMPLE_APP_RESET_COUNTERS_CC = 1
+SAMPLE_APP_PROCESS_CC = 2
+SAMPLE_APP_DISPLAY_PARAM_CC = 3
+
+# This comes from sample_app_mission_cfg.h (not provided yet). Set it once you grep it in the VM.
+# grep -R "SAMPLE_APP_MISSION_STRING_VAL_LEN" -n ~/Desktop/cFS/apps/sample_app | head
+SAMPLE_APP_MISSION_STRING_VAL_LEN = 32  # TODO: update to match VM
 
 
 def cfe_platform_cmd_topicid_to_mid(topic_id: int) -> int:
@@ -88,6 +109,66 @@ def send_ci_lab(packet: bytes, target_ip: str = TARGET_IP, port: int = CI_LAB_UD
     finally:
         sock.close()
 
+
+def send_command(mid: int, cc: int, payload: bytes = b"", seq: int = 1) -> None:
+    pkt = build_cfs_command(mid, cc, payload=payload, seq=seq)
+    send_ci_lab(pkt)
+
+
+def sample_app_noop() -> str:
+    send_command(SAMPLE_APP_CMD_MID, SAMPLE_APP_NOOP_CC, payload=b"", seq=1)
+    return "Sent SAMPLE_APP NOOP"
+
+
+def sample_app_reset_counters() -> str:
+    send_command(SAMPLE_APP_CMD_MID, SAMPLE_APP_RESET_COUNTERS_CC, payload=b"", seq=1)
+    return "Sent SAMPLE_APP RESET_COUNTERS"
+
+
+def sample_app_process() -> str:
+    send_command(SAMPLE_APP_CMD_MID, SAMPLE_APP_PROCESS_CC, payload=b"", seq=1)
+    return "Sent SAMPLE_APP PROCESS"
+
+
+def sample_app_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
+    # Payload (from default_sample_app_msgdefs.h):
+    #   uint32 ValU32;
+    #   int16  ValI16;
+    #   char   ValStr[SAMPLE_APP_MISSION_STRING_VAL_LEN];
+    s = (val_str or "").encode("ascii", errors="ignore")
+    s = s[:SAMPLE_APP_MISSION_STRING_VAL_LEN]
+    s = s + (b"\x00" * (SAMPLE_APP_MISSION_STRING_VAL_LEN - len(s)))
+
+    payload = struct.pack(">Ih", int(val_u32) & 0xFFFFFFFF, int(val_i16) & 0xFFFF
+    ) + s
+
+    send_command(SAMPLE_APP_CMD_MID, SAMPLE_APP_DISPLAY_PARAM_CC, payload=payload, seq=1)
+    return "Sent SAMPLE_APP DISPLAY_PARAM"
+
+
+def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
+    """Placeholder 'movement' API.
+
+    This will NOT do anything in stock sample_app until you add a new command
+    in the VM (recommended CC=4) that consumes these three values.
+
+    Once the VM side is added, update MOVE_CC and the payload layout to match the
+    struct you implement.
+    """
+
+    MOVE_CC = 4  # recommended next free CC after DISPLAY_PARAM
+
+    yaw_cdeg = int(round(float(yaw_deg) * 100.0))
+    pitch_cdeg = int(round(float(pitch_deg) * 100.0))
+    roll_cdeg = int(round(float(roll_deg) * 100.0))
+
+    # Proposed payload for your future command (int16 centi-deg): >hhh
+    payload = struct.pack(">hhh", yaw_cdeg, pitch_cdeg, roll_cdeg)
+
+    send_command(SAMPLE_APP_CMD_MID, MOVE_CC, payload=payload, seq=1)
+    return "Sent movement demo command (requires VM-side implementation)"
+
+
 def message_cFS() -> str:
     # From your Ubuntu VM:
     #   DEFAULT_CFE_MISSION_ES_CMD_TOPICID = 6
@@ -106,6 +187,7 @@ def message_cFS() -> str:
     )
     send_ci_lab(pkt)
     return "Sent."
+
 
 if __name__ == "__main__":
     message_cFS()

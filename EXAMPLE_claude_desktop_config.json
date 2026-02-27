@@ -23,6 +23,36 @@
       "args": [
         "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
       ]
+    },
+    "sample_noop": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "sample_reset_counters": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "sample_process": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "sample_display_param": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
+    },
+    "sample_attitude_demo": {
+      "command": "python",
+      "args": [
+        "{YOUR_PATH_TO_REPO}\\KSU-Team-3-Analyzing-Security-Model-Context-Protocol\\server.py"
+      ]
     }
   },
   "preferences": {

@@ -1,59 +1,43 @@
-from mcp.server.fastmcp import FastMCP
-from mcp.server.auth import AuthSettings
+from fastmcp import FastMCP
 import time
 import signal
 import sys
 import cfs_commands
+from fastmcp.server.auth.providers.github import GitHubProvider
 import os
-import re
-from pydantic import AnyHttpUrl
-from dotenv import load_dotenv
-from auth import create_auth0_verifier
 
-# Load environment variables from .env file
-load_dotenv()
-
-# Get Auth0 configuration from environment
-auth0_domain = os.getenv("AUTH0_DOMAIN")
-resource_server_url = os.getenv("RESOURCE_SERVER_URL")
-
-if not auth0_domain:
-    raise ValueError("AUTH0_DOMAIN environment variable is required")
-if not resource_server_url:
-    raise ValueError("RESOURCE_SERVER_URL environment variable is required")
-
-# Load server instructions
-with open("prompts/server_instructions.md", "r") as file:
-    server_instructions = file.read()
-
-# Initialize Auth0 token verifier
-token_verifier = create_auth0_verifier()
-
-# Create an MCP server with OAuth authentication
-mcp = FastMCP(
-    "mcp-cfs",
-    instructions=server_instructions,
-    host="127.0.0.1",
-    # OAuth Configuration
-    token_verifier=token_verifier,
-    auth=AuthSettings(
-        issuer_url=AnyHttpUrl(f"https://{auth0_domain}/"),
-        resource_server_url=AnyHttpUrl(resource_server_url),
-        required_scopes=["openid", "profile", "email", "address", "phone"],
-    ),
-)
-
-def signal_handler(sig, frame):
+def signal_handler(_sig, _frame):
     print("Shutting down server gracefully")
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
-# mcp = FastMCP(
-#     name="mcp-cfs",
-#     host="127.0.0.1",
-#     port=5000
-# )
+# Get GitHub auth configuration from environment variables
+auth = GitHubProvider(
+    client_id=os.getenv("OAUTH_CLIENT_ID"),
+    client_secret=os.getenv("OAUTH_CLIENT_SECRET"),
+    base_url="http://localhost:5000"
+)
+
+mcp = FastMCP(
+    name="mcp-cfs",
+    auth=auth
+)
+
+# Source: https://gofastmcp.com/integrations/github
+# Add a protected tool to test authentication
+@mcp.tool
+async def get_user_info() -> dict:
+    """Returns information about the authenticated GitHub user."""
+    from fastmcp.server.dependencies import get_access_token
+    
+    token = get_access_token()
+    # The GitHubProvider stores user data in token claims
+    return {
+        "github_user": token.claims.get("login"),
+        "name": token.claims.get("name"),
+        "email": token.claims.get("email")
+    }
 
 @mcp.tool()
 def count_r(word: str) -> int:
@@ -62,7 +46,7 @@ def count_r(word: str) -> int:
         if not isinstance(word, str):
             return 0
         return word.lower().count("r")
-    except Exception as e:
+    except Exception:
         return 0
 
 @mcp.tool()
@@ -71,7 +55,7 @@ def count_vowels(word: str) -> int:
         if not isinstance(word, str):
             return 0
         return word.lower().count("a") + word.lower().count("e") + word.lower().count("i") + word.lower().count("o") + word.lower().count("u")
-    except Exception as e:
+    except Exception:
         return 0
 
 @mcp.tool()
@@ -83,7 +67,7 @@ def fibonacci(n: int) -> int:
     curr = 0
     prev1 = 1
     prev2 = 0
-    for i in range(2, n + 1):
+    for _ in range(2, n + 1):
         curr = prev1 + prev2
         prev2 = prev1
         prev1 = curr
@@ -93,7 +77,7 @@ def fibonacci(n: int) -> int:
 def message_cFS() -> str:
     try:
         return cfs_commands.message_cFS()
-    except Exception as e:
+    except Exception:
         return "Error"
 
 @mcp.tool()

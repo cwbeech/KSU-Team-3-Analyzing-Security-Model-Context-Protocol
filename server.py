@@ -4,6 +4,7 @@ import signal
 import sys
 import cfs_commands
 from fastmcp.server.auth.providers.github import GitHubProvider
+from fastmcp.server.auth.jwt_issuer import derive_jwt_key
 import os
 
 def signal_handler(_sig, _frame):
@@ -12,10 +13,16 @@ def signal_handler(_sig, _frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+jwt_signing_key = derive_jwt_key(
+    high_entropy_material=os.getenv("JWT_SECRET"),
+    salt="mcp-cfs-salt",
+)
+
 # Get GitHub auth configuration from environment variables
 auth = GitHubProvider(
     client_id=os.getenv("OAUTH_CLIENT_ID"),
     client_secret=os.getenv("OAUTH_CLIENT_SECRET"),
+    jwt_signing_key=jwt_signing_key,
     base_url="http://localhost:5000"
 )
 

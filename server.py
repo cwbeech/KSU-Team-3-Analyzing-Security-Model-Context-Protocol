@@ -1,8 +1,47 @@
 from mcp.server.fastmcp import FastMCP
+from mcp.server.auth import AuthSettings
 import time
 import signal
 import sys
 import cfs_commands
+import os
+import re
+from pydantic import AnyHttpUrl
+from dotenv import load_dotenv
+from auth import create_auth0_verifier
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get Auth0 configuration from environment
+auth0_domain = os.getenv("AUTH0_DOMAIN")
+resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+
+if not auth0_domain:
+    raise ValueError("AUTH0_DOMAIN environment variable is required")
+if not resource_server_url:
+    raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+
+# Load server instructions
+with open("prompts/server_instructions.md", "r") as file:
+    server_instructions = file.read()
+
+# Initialize Auth0 token verifier
+token_verifier = create_auth0_verifier()
+
+# Create an MCP server with OAuth authentication
+mcp = FastMCP(
+    "mcp-cfs",
+    instructions=server_instructions,
+    host="127.0.0.1",
+    # OAuth Configuration
+    token_verifier=token_verifier,
+    auth=AuthSettings(
+        issuer_url=AnyHttpUrl(f"https://{auth0_domain}/"),
+        resource_server_url=AnyHttpUrl(resource_server_url),
+        required_scopes=["openid", "profile", "email", "address", "phone"],
+    ),
+)
 
 def signal_handler(sig, frame):
     print("Shutting down server gracefully")
@@ -10,11 +49,11 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-mcp = FastMCP(
-    name="count-r",
-    host="127.0.0.1",
-    port=5000
-)
+# mcp = FastMCP(
+#     name="mcp-cfs",
+#     host="127.0.0.1",
+#     port=5000
+# )
 
 @mcp.tool()
 def count_r(word: str) -> int:

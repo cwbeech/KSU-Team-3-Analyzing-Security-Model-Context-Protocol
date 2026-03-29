@@ -5,6 +5,7 @@ secrets/
 
 # Local configuration (each team member sets their own)
 config.py
+.env
 
 # Python cache
 __pycache__/

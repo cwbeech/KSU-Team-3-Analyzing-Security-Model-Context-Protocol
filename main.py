@@ -15,9 +15,6 @@ token_verifier = create_auth0_verifier()
 auth0_domain = os.getenv("AUTH0_DOMAIN")
 resource_server_url = os.getenv("RESOURCE_SERVER_URL")
 
-with open("prompts/server_instructions.md", "r") as file:
-    server_instructions = file.read()
-
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully")
     sys.exit(0)
@@ -26,7 +23,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
     "yt-mcp",
-    instructions=server_instructions,
     host="0.0.0.0",
     token_verifier=token_verifier,
     auth=AuthSettings(

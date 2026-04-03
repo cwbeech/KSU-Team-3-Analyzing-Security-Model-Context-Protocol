@@ -1,11 +1,22 @@
-from fastmcp import FastMCP
-import time
 import signal
 import sys
 import cfs_commands
-from fastmcp.server.auth.providers.github import GitHubProvider
-from fastmcp.server.auth.jwt_issuer import derive_jwt_key
 import os
+from dotenv import load_dotenv
+from mcp.server.fastmcp import FastMCP
+from mcp.server.auth.settings import AuthSettings
+from pydantic import AnyHttpUrl
+from utils.auth import create_auth0_verifier
+
+load_dotenv()
+
+token_verifier = create_auth0_verifier()
+
+auth0_domain = os.getenv("AUTH0_DOMAIN")
+resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+
+with open("prompts/server_instructions.md", "r") as file:
+    server_instructions = file.read()
 
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully")
@@ -13,38 +24,17 @@ def signal_handler(_sig, _frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-jwt_signing_key = derive_jwt_key(
-    high_entropy_material=os.getenv("JWT_SECRET"),
-    salt="mcp-cfs-salt",
-)
-
-# Get GitHub auth configuration from environment variables
-auth = GitHubProvider(
-    client_id=os.getenv("OAUTH_CLIENT_ID"),
-    client_secret=os.getenv("OAUTH_CLIENT_SECRET"),
-    jwt_signing_key=jwt_signing_key,
-    base_url="http://localhost:5000"
-)
-
 mcp = FastMCP(
-    name="mcp-cfs",
-    auth=auth
+    "yt-mcp",
+    instructions=server_instructions,
+    host="0.0.0.0",
+    token_verifier=token_verifier,
+    auth=AuthSettings(
+        issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
+        resource_server_url = AnyHttpUrl(resource_server_url),
+        required_scopes=["openid", "profile", "email", "address", "phone"],
+    ),
 )
-
-# Source: https://gofastmcp.com/integrations/github
-# Add a protected tool to test authentication
-@mcp.tool
-async def get_user_info() -> dict:
-    """Returns information about the authenticated GitHub user."""
-    from fastmcp.server.dependencies import get_access_token
-    
-    token = get_access_token()
-    # The GitHubProvider stores user data in token claims
-    return {
-        "github_user": token.claims.get("login"),
-        "name": token.claims.get("name"),
-        "email": token.claims.get("email")
-    }
 
 @mcp.tool()
 def count_r(word: str) -> int:

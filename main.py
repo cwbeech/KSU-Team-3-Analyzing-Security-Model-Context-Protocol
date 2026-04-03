@@ -2,6 +2,7 @@ import signal
 import sys
 import cfs_commands
 import os
+import time
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server.auth.settings import AuthSettings
@@ -22,8 +23,7 @@ def signal_handler(_sig, _frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
-    "yt-mcp",
-    host="0.0.0.0",
+    "mcp-cfs",
     token_verifier=token_verifier,
     auth=AuthSettings(
         issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
@@ -115,7 +115,7 @@ def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
 
 if __name__ == "__main__":
     try:
-        print("Starting MCP server 'count-r' on 127.0.0.1:5000")
+        print("Starting MCP server 'mcp-cfs' on 127.0.0.1:5000")
         mcp.run()
     except Exception as e:
         print(f"Error: {e}")

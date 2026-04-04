@@ -33,7 +33,7 @@ signal.signal(signal.SIGINT, signal_handler)
 mcp = FastMCP(
     "mcp-cfs",
     token_verifier=token_verifier,
-    server_instructions=server_instructions,
+    instructions=server_instructions,
     auth=AuthSettings(
         issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
         resource_server_url = AnyHttpUrl(resource_server_url),

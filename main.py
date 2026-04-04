@@ -125,7 +125,7 @@ def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
 if __name__ == "__main__":
     try:
         print("Starting MCP server 'mcp-cfs' on 127.0.0.1:5000")
-        mcp.run()
+        mcp.run(transport='streamable-http')
     except Exception as e:
         print(f"Error: {e}")
         time.sleep(5)

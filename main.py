@@ -16,6 +16,14 @@ token_verifier = create_auth0_verifier()
 auth0_domain = os.getenv("AUTH0_DOMAIN")
 resource_server_url = os.getenv("RESOURCE_SERVER_URL")
 
+if not auth0_domain:
+    raise ValueError("AUTH0_DOMAIN environment variable is required")
+if not resource_server_url:
+    raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+
+with open("server_instructions.md", "r") as file:
+    server_instructions = file.read()
+
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully")
     sys.exit(0)

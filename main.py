@@ -1,11 +1,28 @@
-# Local MCP server for Claude Desktop (stdio transport, no Auth0)
-# main.py is for the web deployment (streamable-http + Auth0)
 import signal
 import sys
-import time
 import cfs_commands
+import os
+import time
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
+from mcp.server.auth.settings import AuthSettings
+from pydantic import AnyHttpUrl
+from utils.auth import create_auth0_verifier
 
+load_dotenv()
+
+token_verifier = create_auth0_verifier()
+
+auth0_domain = os.getenv("AUTH0_DOMAIN")
+resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+
+if not auth0_domain:
+    raise ValueError("AUTH0_DOMAIN environment variable is required")
+if not resource_server_url:
+    raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+
+with open("server_instructions.md", "r") as file:
+    server_instructions = file.read()
 
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)
@@ -15,11 +32,16 @@ def signal_handler(_sig, _frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
-    name="cfs_commander",
-    host="127.0.0.1",
-    port=5000
+    "mcp-cfs",
+    instructions=server_instructions,
+    host="0.0.0.0",
+    token_verifier=token_verifier,
+    auth=AuthSettings(
+        issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
+        resource_server_url = AnyHttpUrl(resource_server_url),
+        required_scopes=["openid", "profile", "email", "address", "phone"],
+    ),
 )
-
 
 @mcp.tool()
 def count_r(word: str) -> int:
@@ -31,24 +53,20 @@ def count_r(word: str) -> int:
     except Exception:
         return 0
 
-
 @mcp.tool()
 def count_vowels(word: str) -> int:
     try:
         if not isinstance(word, str):
             return 0
-        return (word.lower().count("a") + word.lower().count("e") +
-                word.lower().count("i") + word.lower().count("o") +
-                word.lower().count("u"))
+        return word.lower().count("a") + word.lower().count("e") + word.lower().count("i") + word.lower().count("o") + word.lower().count("u")
     except Exception:
         return 0
-
 
 @mcp.tool()
 def fibonacci(n: int) -> int:
     if not isinstance(n, int):
         return 0
-    if n <= 1:
+    if n <= 1: 
         return n
     curr = 0
     prev1 = 1
@@ -59,13 +77,11 @@ def fibonacci(n: int) -> int:
         prev1 = curr
     return curr
 
-
 @mcp.tool()
 def enable_telemetry(dest_ip: str = "") -> str:
     """Enable cFS to send telemetry back to this computer.
-
-    This must be called once after cFS starts to receive confirmations.
-    If dest_ip is not provided, it will use the gateway IP (e.g., 192.168.136.1).
+    
+    This must be called once after cFS starts to receive confirmations.    If dest_ip is not provided, it will use the gateway IP (e.g., 192.168.136.1).
     """
     try:
         ip = dest_ip if dest_ip else None
@@ -76,12 +92,15 @@ def enable_telemetry(dest_ip: str = "") -> str:
 
 def _send_and_wait_for_event(send_fn, description, wait_secs=2.0):
     """Send a command and wait briefly for an event confirmation from cFS."""
+    # Record the event count before sending
     before_count = 0
     with cfs_commands._tlm_lock:
         before_count = cfs_commands._event_count
 
+    # Send the command
     result = send_fn()
 
+    # Wait for a new event to arrive (up to wait_secs)
     deadline = time.time() + wait_secs
     while time.time() < deadline:
         with cfs_commands._tlm_lock:
@@ -109,7 +128,6 @@ def message_cFS() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 @mcp.tool()
 def sample_noop() -> str:
     """Send NOOP command to sample_app and wait for confirmation event."""
@@ -117,7 +135,6 @@ def sample_noop() -> str:
         return _send_and_wait_for_event(cfs_commands.sample_app_noop, "SAMPLE_APP NOOP")
     except Exception as e:
         return f"Error: {e}"
-
 
 @mcp.tool()
 def sample_reset_counters() -> str:
@@ -127,7 +144,6 @@ def sample_reset_counters() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 @mcp.tool()
 def sample_process() -> str:
     """Send PROCESS command to sample_app and wait for confirmation event."""
@@ -135,7 +151,6 @@ def sample_process() -> str:
         return _send_and_wait_for_event(cfs_commands.sample_app_process, "SAMPLE_APP PROCESS")
     except Exception as e:
         return f"Error: {e}"
-
 
 @mcp.tool()
 def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
@@ -148,7 +163,6 @@ def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 @mcp.tool()
 def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
     """Set spacecraft attitude (yaw, pitch, roll in degrees) and wait for confirmation event."""
@@ -160,11 +174,10 @@ def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 @mcp.tool()
 def get_recent_events(count: int = 10) -> str:
     """Get the most recent cFS event messages (command confirmations, errors, etc.).
-
+    
     Returns the last N events received from cFS telemetry.
     Events include app name, event type, event ID, and message text.
     """
@@ -185,7 +198,6 @@ def get_recent_events(count: int = 10) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 @mcp.tool()
 def get_telemetry_status() -> str:
     """Get current telemetry listener status: total packets, events, last event details."""
@@ -204,11 +216,10 @@ def get_telemetry_status() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-
 if __name__ == "__main__":
     try:
-        print("Starting MCP server 'cfs-commander' on stdio", file=sys.stderr)
-        mcp.run()
+        print("Starting MCP server 'mcp-cfs'", file=sys.stderr)
+        mcp.run(transport='streamable-http')
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         time.sleep(5)

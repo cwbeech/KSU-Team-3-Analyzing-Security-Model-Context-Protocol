@@ -1,7 +1,7 @@
 # This is used for the deployed MCP Server found at https://ksu-team-3-analyzing-security-model-context-prot-production.up.railway.app/mcp
 # cFS integration does not work in deployed environment. Results are mocked.
 
-from random import random
+import random
 import signal
 import sys
 import cfs_commands

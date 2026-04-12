@@ -25,9 +25,6 @@ if not auth0_domain:
 if not resource_server_url:
     raise ValueError("RESOURCE_SERVER_URL environment variable is required")
 
-with open("server_instructions.md", "r") as file:
-    server_instructions = file.read()
-
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)
     cfs_commands.stop_telemetry_listener()
@@ -37,7 +34,6 @@ signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
     "mcp-cfs",
-    instructions=server_instructions,
     host="0.0.0.0",
     token_verifier=token_verifier,
     auth=AuthSettings(

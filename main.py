@@ -1,3 +1,7 @@
+# This is used for the deployed MCP Server found at https://ksu-team-3-analyzing-security-model-context-prot-production.up.railway.app/mcp
+# cFS integration does not work in deployed environment. Results are mocked.
+
+from random import random
 import signal
 import sys
 import cfs_commands
@@ -84,8 +88,10 @@ def enable_telemetry(dest_ip: str = "") -> str:
     This must be called once after cFS starts to receive confirmations.    If dest_ip is not provided, it will use the gateway IP (e.g., 192.168.136.1).
     """
     try:
-        ip = dest_ip if dest_ip else None
-        return str(cfs_commands.enable_telemetry(dest_ip=ip))
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated telemetry enable failure")
+        else:
+            return "Simulated telemetry enabled successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -124,7 +130,10 @@ def _send_and_wait_for_event(send_fn, description, wait_secs=2.0):
 def message_cFS() -> str:
     """Send ES NOOP command to cFS and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(cfs_commands.message_cFS, "ES NOOP")
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated cFS NOOP failure")
+        else:
+            return "Simulated cFS NOOP sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -132,7 +141,10 @@ def message_cFS() -> str:
 def sample_noop() -> str:
     """Send NOOP command to sample_app and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(cfs_commands.sample_app_noop, "SAMPLE_APP NOOP")
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated sample_app NOOP failure")
+        else:
+            return "Simulated sample_app NOOP sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -140,7 +152,10 @@ def sample_noop() -> str:
 def sample_reset_counters() -> str:
     """Reset sample_app command counters and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(cfs_commands.sample_app_reset_counters, "SAMPLE_APP RESET_COUNTERS")
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated sample_app reset counters failure")
+        else:
+            return "Simulated sample_app reset counters sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -148,7 +163,10 @@ def sample_reset_counters() -> str:
 def sample_process() -> str:
     """Send PROCESS command to sample_app and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(cfs_commands.sample_app_process, "SAMPLE_APP PROCESS")
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated process command failure")
+        else:
+            return "Simulated process command sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -156,10 +174,10 @@ def sample_process() -> str:
 def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
     """Send sample_app DISPLAY_PARAM command and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(
-            lambda: cfs_commands.sample_app_display_param(val_u32=val_u32, val_i16=val_i16, val_str=val_str),
-            "SAMPLE_APP DISPLAY_PARAM"
-        )
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated sample_app DISPLAY_PARAM failure")
+        else:
+            return "Simulated sample_app DISPLAY_PARAM sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -167,10 +185,10 @@ def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
 def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
     """Set spacecraft attitude (yaw, pitch, roll in degrees) and wait for confirmation event."""
     try:
-        return _send_and_wait_for_event(
-            lambda: cfs_commands.set_attitude_demo(yaw_deg=yaw_deg, pitch_deg=pitch_deg, roll_deg=roll_deg),
-            "SET_ATTITUDE"
-        )
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated set_attitude_demo failure")
+        else:
+            return "Simulated set_attitude_demo sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -182,19 +200,10 @@ def get_recent_events(count: int = 10) -> str:
     Events include app name, event type, event ID, and message text.
     """
     try:
-        events = cfs_commands.get_recent_events(count=count)
-        if not events:
-            return "No events received yet. Make sure telemetry is enabled (call enable_telemetry first)."
-        lines = [f"Last {len(events)} cFS events:"]
-        for i, evt in enumerate(events):
-            app = evt.get("app", "?")
-            etype = evt.get("event_type", "?")
-            eid = evt.get("event_id", "?")
-            msg = evt.get("message", "")
-            apid = evt.get("apid", "?")
-            lines.append(f"  [{i+1}] [{app}] {etype} (EventID={eid}, APID={apid})"
-                         + (f" - {msg}" if msg else ""))
-        return "\n".join(lines)
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated get_recent_events failure")
+        else:
+            return "Simulated get_recent_events sent successfully."
     except Exception as e:
         return f"Error: {e}"
 
@@ -202,17 +211,10 @@ def get_recent_events(count: int = 10) -> str:
 def get_telemetry_status() -> str:
     """Get current telemetry listener status: total packets, events, last event details."""
     try:
-        evt = cfs_commands.get_last_event()
-        status_parts = [
-            f"Total packets received: {evt.get('total_packets', 0)}",
-            f"Total events received: {evt.get('total_events', 0)}",
-        ]
-        if "app" in evt:
-            status_parts.append(f"Last event: [{evt['app']}] {evt.get('event_type','?')} "
-                                f"(EventID={evt.get('event_id','?')}) {evt.get('message','')}")
+        if (random.randint(1, 10) <= 2):  # 20% chance to simulate an error
+            raise RuntimeError("Simulated get_telemetry_status failure")
         else:
-            status_parts.append(f"Last event: {evt.get('status', 'none')}")
-        return "\n".join(status_parts)
+            return "Simulated get_telemetry_status sent successfully."
     except Exception as e:
         return f"Error: {e}"
 

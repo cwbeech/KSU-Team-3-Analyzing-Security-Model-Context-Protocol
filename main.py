@@ -42,7 +42,11 @@ mcp = FastMCP(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
         base_url=AnyHttpUrl(resource_server_url),
-        scopes_supported=["openid", "profile", "email", "address", "phone", "offline_access", "read:cFS", "write:cFS"],
+        scopes_supported=["openid",
+                          "profile",
+                          "email",
+                          "address",
+                          "phone"],
     )
 )
 

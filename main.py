@@ -45,7 +45,7 @@ mcp = FastMCP(
     )
 )
 
-@mcp.tool(auth=require_scopes("read:cFS"))
+@mcp.tool()
 def count_r(word: str) -> int:
     """Count the number of 'r' letters in a given word."""
     try:

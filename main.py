@@ -27,7 +27,7 @@ if not audience:
     raise ValueError("AUTH0_AUDIENCE environment variable is required")
 
 token_verifier = JWTVerifier(
-    jwks_url = f"https://{auth0_domain}/.well-known/jwks.json",
+    jwks_uri = f"https://{auth0_domain}/.well-known/jwks.json",
     issuer = f"https://{auth0_domain}/",
     audience = audience,
     algorithm = "RS256",

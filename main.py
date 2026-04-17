@@ -12,6 +12,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.server.auth.settings import AuthSettings
 from pydantic import AnyHttpUrl
 from utils.auth import create_auth0_verifier
+from utils.authorization import require_scope
 
 load_dotenv()
 
@@ -78,7 +79,9 @@ def fibonacci(n: int) -> int:
     return curr
 
 @mcp.tool()
-def enable_telemetry(dest_ip: str = "") -> str:
+def enable_telemetry(ctx, dest_ip: str = "") -> str:
+    require_scope(ctx, "read:cFS")
+    require_scope(ctx, "write:cFS")
     """Enable cFS to send telemetry back to this computer.
     
     This must be called once after cFS starts to receive confirmations.    If dest_ip is not provided, it will use the gateway IP (e.g., 192.168.136.1).

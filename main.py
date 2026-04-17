@@ -42,13 +42,7 @@ mcp = FastMCP(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
         base_url=AnyHttpUrl(resource_server_url)
-    )s
-
-    # auth=AuthSettings(
-    #     issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
-    #     resource_server_url = AnyHttpUrl(resource_server_url),
-    #     required_scopes=["openid", "profile", "email", "address", "phone"],
-    # ),
+    )
 )
 
 @mcp.tool(auth=require_scopes("read:cFS"))

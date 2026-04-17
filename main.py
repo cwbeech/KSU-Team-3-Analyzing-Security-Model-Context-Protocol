@@ -8,15 +8,13 @@ import cfs_commands
 import os
 import time
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
-from mcp.server.auth.settings import AuthSettings
+from fastmcp import FastMCP
+from fastmcp.server.auth.authorization import require_scopes
+from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
 from utils.auth import create_auth0_verifier
-from utils.authorization import require_scope
 
 load_dotenv()
-
-token_verifier = create_auth0_verifier()
 
 auth0_domain = os.getenv("AUTH0_DOMAIN")
 resource_server_url = os.getenv("RESOURCE_SERVER_URL")
@@ -25,6 +23,11 @@ if not auth0_domain:
     raise ValueError("AUTH0_DOMAIN environment variable is required")
 if not resource_server_url:
     raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+
+token_verifier = JWTVerifier(
+    jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
+    issuer=f"https://{auth0_domain}/",
+)
 
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)
@@ -35,16 +38,20 @@ signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
     "mcp-cfs",
-    host="0.0.0.0",
-    token_verifier=token_verifier,
-    auth=AuthSettings(
-        issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
-        resource_server_url = AnyHttpUrl(resource_server_url),
-        required_scopes=["openid", "profile", "email", "address", "phone"],
+    auth=RemoteAuthProvider(
+        token_verifier=token_verifier,
+        authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
+        base_url=AnyHttpUrl(f"https://{auth0_domain}/"),
     ),
+
+    # auth=AuthSettings(
+    #     issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
+    #     resource_server_url = AnyHttpUrl(resource_server_url),
+    #     required_scopes=["openid", "profile", "email", "address", "phone"],
+    # ),
 )
 
-@mcp.tool()
+@mcp.tool(auth=require_scopes("read:cFS"))
 def count_r(word: str) -> int:
     """Count the number of 'r' letters in a given word."""
     try:
@@ -79,9 +86,7 @@ def fibonacci(n: int) -> int:
     return curr
 
 @mcp.tool()
-def enable_telemetry(ctx, dest_ip: str = "") -> str:
-    require_scope(ctx, "read:cFS")
-    require_scope(ctx, "write:cFS")
+def enable_telemetry(dest_ip: str = "") -> str:
     """Enable cFS to send telemetry back to this computer.
     
     This must be called once after cFS starts to receive confirmations.    If dest_ip is not provided, it will use the gateway IP (e.g., 192.168.136.1).

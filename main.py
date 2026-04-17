@@ -41,7 +41,7 @@ mcp = FastMCP(
     auth=RemoteAuthProvider(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
-        base_url=AnyHttpUrl(f"https://{auth0_domain}/"),
+        base_url=AnyHttpUrl(resource_server_url),
     ),
 
     # auth=AuthSettings(

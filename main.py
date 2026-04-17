@@ -25,7 +25,7 @@ if not resource_server_url:
 
 token_verifier = JWTVerifier(
     jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
-    issuer=AnyHttpUrl(f"https://{auth0_domain}/"),
+    issuer=f"https://{auth0_domain}",
     audience=resource_server_url,
 )
 

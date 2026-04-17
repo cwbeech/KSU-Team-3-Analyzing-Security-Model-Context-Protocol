@@ -17,16 +17,20 @@ load_dotenv()
 
 auth0_domain = os.getenv("AUTH0_DOMAIN")
 resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+audience = os.getenv("AUTH0_AUDIENCE")
 
 if not auth0_domain:
     raise ValueError("AUTH0_DOMAIN environment variable is required")
 if not resource_server_url:
     raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+if not audience:
+    raise ValueError("AUTH0_AUDIENCE environment variable is required")
 
 token_verifier = JWTVerifier(
-    jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
-    issuer=f"https://{auth0_domain}",
-    audience=resource_server_url,
+    jwks_url = f"https://{auth0_domain}/.well-known/jwks.json",
+    issuer = f"https://{auth0_domain}/",
+    audience = audience,
+    algorithm = "RS256",
 )
 
 def signal_handler(_sig, _frame):
@@ -42,11 +46,7 @@ mcp = FastMCP(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
         base_url=AnyHttpUrl(resource_server_url),
-        scopes_supported=["openid",
-                          "profile",
-                          "email",
-                          "address",
-                          "phone"],
+        scopes_supported=["openid", "profile", "email", "address", "phone"],
     )
 )
 

@@ -10,25 +10,29 @@ import time
 from dotenv import load_dotenv
 from fastmcp import FastMCP
 from fastmcp.server.auth.authorization import require_scopes
-from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
+from fastmcp.server.auth import JWTVerifier
+from fastmcp.server.auth.providers.github import GitHubProvider
 from pydantic import AnyHttpUrl
 
 load_dotenv()
 
-auth0_domain = os.getenv("AUTH0_DOMAIN")
-resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+client_id = os.getenv("GITHUB_CLIENT_ID")
+client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+base_url = os.getenv("BASE_URL")
 
-if not auth0_domain:
-    raise ValueError("AUTH0_DOMAIN environment variable is required")
-if not resource_server_url:
-    raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+if not client_id:
+    raise ValueError("GITHUB_CLIENT_ID environment variable is required")
+if not client_secret:
+    raise ValueError("GITHUB_CLIENT_SECRET environment variable is required")
+if not base_url:
+    raise ValueError("BASE_URL environment variable is required")
 
-token_verifier = JWTVerifier(
-    jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
-    issuer=f"https://{auth0_domain}/",
-    audience=resource_server_url,
+auth_provider = GitHubProvider(
+    client_id=client_id,
+    client_secret=client_secret,
+    base_url=base_url,   # Must match your OAuth App configuration
+    # redirect_path="/auth/callback"   # Default value, customize if needed
 )
-
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)
     cfs_commands.stop_telemetry_listener()
@@ -38,17 +42,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
     "mcp-cfs",
-    auth=RemoteAuthProvider(
-        token_verifier=token_verifier,
-        authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
-        base_url=AnyHttpUrl(resource_server_url),
-    ),
-
-    # auth=AuthSettings(
-    #     issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
-    #     resource_server_url = AnyHttpUrl(resource_server_url),
-    #     required_scopes=["openid", "profile", "email", "address", "phone"],
-    # ),
+    auth=auth_provider
 )
 
 @mcp.tool(auth=require_scopes("read:cFS"))

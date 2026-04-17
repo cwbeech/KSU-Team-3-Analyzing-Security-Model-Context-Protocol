@@ -40,7 +40,7 @@ mcp = FastMCP(
     "mcp-cfs",
     auth=RemoteAuthProvider(
         token_verifier=token_verifier,
-        authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
+        authorization_servers=[AnyHttpUrl(resource_server_url)],
         base_url=AnyHttpUrl(resource_server_url),
     ),
 

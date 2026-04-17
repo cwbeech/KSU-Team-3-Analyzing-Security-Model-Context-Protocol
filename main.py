@@ -12,7 +12,6 @@ from fastmcp import FastMCP
 from fastmcp.server.auth.authorization import require_scopes
 from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
-from utils.auth import create_auth0_verifier
 
 load_dotenv()
 
@@ -27,6 +26,7 @@ if not resource_server_url:
 token_verifier = JWTVerifier(
     jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
     issuer=f"https://{auth0_domain}/",
+    audience=resource_server_url,
 )
 
 def signal_handler(_sig, _frame):

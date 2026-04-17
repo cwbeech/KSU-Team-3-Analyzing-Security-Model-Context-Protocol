@@ -27,7 +27,7 @@ token_verifier = JWTVerifier(
     jwks_uri=AnyHttpUrl(f"https://{auth0_domain}/.well-known/jwks.json"),
     issuer=f"https://{auth0_domain}/",
     audience=resource_server_url,
-    algorithm="RS256"
+    algorithm="RS256",
 )
 
 def signal_handler(_sig, _frame):
@@ -42,7 +42,8 @@ mcp = FastMCP(
     auth=RemoteAuthProvider(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
-        base_url=AnyHttpUrl(resource_server_url)
+        base_url=AnyHttpUrl(resource_server_url),
+        allowed_client_redirect_uris=[AnyHttpUrl("https://claude.ai/api/mcp/auth_callback")],
     )
 )
 

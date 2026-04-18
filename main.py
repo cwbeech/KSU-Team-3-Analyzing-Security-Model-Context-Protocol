@@ -14,6 +14,7 @@ from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
 
 from utils.auth import create_auth0_verifier
+from utils.wrapper import DebugJWTVerifier
 
 load_dotenv()
 
@@ -28,13 +29,12 @@ if not resource_server_url:
 if not audience:
     raise ValueError("AUTH0_AUDIENCE environment variable is required")
 
-token_verifier = create_auth0_verifier()
-# = JWTVerifier(
-#     jwks_uri = f"https://{auth0_domain}/.well-known/jwks.json",
-#     issuer = f"https://{auth0_domain}/",
-#     audience = audience,
-#     algorithm = "RS256",
-# )
+token_verifier = DebugJWTVerifier(
+    jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
+    issuer=f"https://{auth0_domain}/",
+    audience=audience,
+    algorithm="RS256",
+)
 
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)

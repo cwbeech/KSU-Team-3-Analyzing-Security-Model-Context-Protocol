@@ -22,7 +22,6 @@ class Auth0TokenVerifier(TokenVerifier):
         self.algorithms = algorithms or ["RS256"]
         self.jwks_url = f"https://{domain}/.well-known/jwks.json"
         self.issuer = f"https://{domain}/"
-        self.required_scopes: list[str] = []
         # PyJWKClient handles JWKS fetching and caching
         self.jwks_client = PyJWKClient(self.jwks_url)
 

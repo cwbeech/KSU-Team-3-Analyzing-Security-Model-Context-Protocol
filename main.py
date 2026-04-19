@@ -30,7 +30,7 @@ token_verifier = JWTVerifier(
     jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
     issuer=f"https://{auth0_domain}/",
     audience=audience,
-    required_scopes=["openid", "profile", "email"],
+    required_scopes=["openid", "profile", "email", "address", "phone"],
 )
 
 def signal_handler(_sig, _frame):
@@ -43,12 +43,12 @@ signal.signal(signal.SIGINT, signal_handler)
 mcp = FastMCP(
     "mcp-cfs",
     auth=RemoteAuthProvider(
-    token_verifier=token_verifier,
-    authorization_servers=[
-        AnyHttpUrl(f"https://{auth0_domain}/.well-known/openid-configuration")
-    ],
-    base_url=AnyHttpUrl(resource_server_url),
-)
+        token_verifier=token_verifier,
+        authorization_servers=[
+            AnyHttpUrl(f"https://{auth0_domain}/.well-known/openid-configuration")
+        ],
+        base_url=AnyHttpUrl(resource_server_url),
+    )
 )
 
 @mcp.tool()

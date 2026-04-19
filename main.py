@@ -85,7 +85,7 @@ def fibonacci(n: int) -> int:
         prev1 = curr
     return curr
 
-@mcp.tool(required_scopes=["write:cFS"])
+@mcp.tool(auth=require_scopes("write:cFS"))
 def enable_telemetry(dest_ip: str = "") -> str:
     """Enable cFS to send telemetry back to this computer.
     
@@ -130,7 +130,7 @@ def _send_and_wait_for_event(send_fn, description, wait_secs=2.0):
     return f"{result}\n(no event confirmation received within {wait_secs}s)"
 
 
-@mcp.tool(required_scopes=["read:cFS"])
+@mcp.tool(auth=require_scopes("read:cFS"))
 def message_cFS() -> str:
     """Send ES NOOP command to cFS and wait for confirmation event."""
     try:
@@ -141,7 +141,7 @@ def message_cFS() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["read:cFS"])
+@mcp.tool(auth=require_scopes("read:cFS"))
 def sample_noop() -> str:
     """Send NOOP command to sample_app and wait for confirmation event."""
     try:
@@ -152,7 +152,7 @@ def sample_noop() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["write:cFS"])
+@mcp.tool(auth=require_scopes("write:cFS"))
 def sample_reset_counters() -> str:
     """Reset sample_app command counters and wait for confirmation event."""
     try:
@@ -163,7 +163,7 @@ def sample_reset_counters() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["write:cFS"])
+@mcp.tool(auth=require_scopes("write:cFS"))
 def sample_process() -> str:
     """Send PROCESS command to sample_app and wait for confirmation event."""
     try:
@@ -174,7 +174,7 @@ def sample_process() -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["read:cFS"])
+@mcp.tool(auth=require_scopes("read:cFS"))
 def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
     """Send sample_app DISPLAY_PARAM command and wait for confirmation event."""
     try:
@@ -185,7 +185,7 @@ def sample_display_param(val_u32: int, val_i16: int, val_str: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["write:cFS"])
+@mcp.tool(auth=require_scopes("write:cFS"))
 def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
     """Set spacecraft attitude (yaw, pitch, roll in degrees) and wait for confirmation event."""
     try:
@@ -196,7 +196,7 @@ def set_attitude_demo(yaw_deg: float, pitch_deg: float, roll_deg: float) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["read:cFS"])
+@mcp.tool(auth=require_scopes("read:cFS"))
 def get_recent_events(count: int = 10) -> str:
     """Get the most recent cFS event messages (command confirmations, errors, etc.).
     
@@ -211,7 +211,7 @@ def get_recent_events(count: int = 10) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-@mcp.tool(required_scopes=["read:cFS"])
+@mcp.tool(auth=require_scopes("read:cFS"))
 def get_telemetry_status() -> str:
     """Get current telemetry listener status: total packets, events, last event details."""
     try:

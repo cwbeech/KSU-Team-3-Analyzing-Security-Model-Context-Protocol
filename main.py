@@ -28,9 +28,9 @@ if not audience:
 
 token_verifier = JWTVerifier(
     jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
-    issuer=f"https://{auth0_domain}",
+    issuer=f"https://{auth0_domain}/",
     audience=audience,
-    algorithm="RS256",
+    required_scopes=["openid", "profile", "email", "address", "phone"],
 )
 
 def signal_handler(_sig, _frame):
@@ -46,7 +46,6 @@ mcp = FastMCP(
         token_verifier=token_verifier,
         authorization_servers=[AnyHttpUrl(f"https://{auth0_domain}/")],
         base_url=AnyHttpUrl(resource_server_url),
-        scopes_supported=["openid", "profile", "email", "address", "phone"],
     )
 )
 

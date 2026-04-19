@@ -31,10 +31,6 @@ token_verifier = JWTVerifier(
     issuer=f"https://{auth0_domain}/",
     audience=audience,
     required_scopes=["openid", "profile", "email"],
-    redirect_uris=[
-        AnyHttpUrl("https://claude.ai"), 
-        AnyHttpUrl("https://*.anthropic.com")
-    ],
 )
 
 def signal_handler(_sig, _frame):

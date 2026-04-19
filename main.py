@@ -8,22 +8,34 @@ import cfs_commands
 import os
 import time
 from dotenv import load_dotenv
-from mcp.server.fastmcp import FastMCP
-from mcp.server.auth.settings import AuthSettings
+from fastmcp import FastMCP
+from fastmcp.server.auth.authorization import require_scopes
+from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
-from utils.auth import create_auth0_verifier
 
 load_dotenv()
 
-token_verifier = create_auth0_verifier()
-
 auth0_domain = os.getenv("AUTH0_DOMAIN")
 resource_server_url = os.getenv("RESOURCE_SERVER_URL")
+audience = os.getenv("AUTH0_AUDIENCE")
 
 if not auth0_domain:
     raise ValueError("AUTH0_DOMAIN environment variable is required")
 if not resource_server_url:
     raise ValueError("RESOURCE_SERVER_URL environment variable is required")
+if not audience:
+    raise ValueError("AUTH0_AUDIENCE environment variable is required")
+
+token_verifier = JWTVerifier(
+    jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
+    issuer=f"https://{auth0_domain}/",
+    audience=audience,
+    required_scopes=["openid", "profile", "email"],
+    redirect_uris=[
+        AnyHttpUrl("https://claude.ai"), 
+        AnyHttpUrl("https://*.anthropic.com")
+    ],
+)
 
 def signal_handler(_sig, _frame):
     print("Shutting down server gracefully", file=sys.stderr)
@@ -34,13 +46,13 @@ signal.signal(signal.SIGINT, signal_handler)
 
 mcp = FastMCP(
     "mcp-cfs",
-    host="0.0.0.0",
+    auth=RemoteAuthProvider(
     token_verifier=token_verifier,
-    auth=AuthSettings(
-        issuer_url = AnyHttpUrl(f"https://{auth0_domain}/"),
-        resource_server_url = AnyHttpUrl(resource_server_url),
-        required_scopes=["openid", "profile", "email", "address", "phone"],
-    ),
+    authorization_servers=[
+        AnyHttpUrl(f"https://{auth0_domain}/.well-known/openid-configuration")
+    ],
+    base_url=AnyHttpUrl(resource_server_url),
+)
 )
 
 @mcp.tool()

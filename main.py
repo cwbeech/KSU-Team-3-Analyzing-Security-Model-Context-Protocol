@@ -13,9 +13,6 @@ from fastmcp.server.auth.authorization import require_scopes
 from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
 
-from utils.auth import create_auth0_verifier
-from utils.wrapper import DebugJWTVerifier
-
 load_dotenv()
 
 auth0_domain = os.getenv("AUTH0_DOMAIN")
@@ -29,9 +26,9 @@ if not resource_server_url:
 if not audience:
     raise ValueError("AUTH0_AUDIENCE environment variable is required")
 
-token_verifier = DebugJWTVerifier(
+token_verifier = JWTVerifier(
     jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
-    issuer=f"https://{auth0_domain}/",
+    issuer=f"https://{auth0_domain}",
     audience=audience,
     algorithm="RS256",
 )

@@ -47,6 +47,7 @@ mcp = FastMCP(
             AnyHttpUrl(f"https://{auth0_domain}/.well-known/openid-configuration")
         ],
         base_url=AnyHttpUrl(resource_server_url),
+        scopes_supported=["read:cFS", "write:cFS"],
     )
 )
 

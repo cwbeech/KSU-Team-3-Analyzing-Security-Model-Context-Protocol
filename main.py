@@ -225,7 +225,11 @@ def get_telemetry_status() -> str:
 if __name__ == "__main__":
     try:
         print("Starting MCP server 'mcp-cfs'", file=sys.stderr)
-        mcp.run(transport='streamable-http')
+        mcp.run(
+            transport="streamable-http",
+            host="0.0.0.0",
+            port=8000,
+        )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         time.sleep(5)

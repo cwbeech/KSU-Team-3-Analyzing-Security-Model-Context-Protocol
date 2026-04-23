@@ -30,6 +30,7 @@ token_verifier = JWTVerifier(
     jwks_uri=f"https://{auth0_domain}/.well-known/jwks.json",
     issuer=f"https://{auth0_domain}/",
     audience=audience,
+    required_scopes=["openid", "profile", "email", "address", "phone"],
 )
 
 def signal_handler(_sig, _frame):

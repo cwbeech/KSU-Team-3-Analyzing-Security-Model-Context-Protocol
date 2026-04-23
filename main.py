@@ -9,7 +9,6 @@ import os
 import time
 from dotenv import load_dotenv
 from fastmcp import FastMCP
-from fastmcp.server.auth.authorization import require_scopes
 from fastmcp.server.auth import JWTVerifier, RemoteAuthProvider
 from pydantic import AnyHttpUrl
 

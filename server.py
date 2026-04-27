@@ -203,6 +203,91 @@ def get_telemetry_status() -> str:
         return "\n".join(status_parts)
     except Exception as e:
         return f"Error: {e}"
+    
+# -------------------------------
+# Mock Telemetry Synchronization Test Tools
+# -------------------------------
+
+mock_sync_state = {
+    "subsystem_status": "OFF",
+    "previous_subsystem_status": "OFF",
+    "test_mode": "normal",  # normal, delayed, stale_once
+    "last_command": "None",
+    "last_write_time": None,
+    "last_read_time": None
+}
+
+
+def _current_time():
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+
+@mcp.tool()
+def set_sync_test_mode(mode: str) -> str:
+    """Set synchronization test mode: normal, delayed, or stale_once."""
+    allowed_modes = ["normal", "delayed", "stale_once"]
+
+    if mode not in allowed_modes:
+        return f"Invalid mode. Choose one of: {allowed_modes}"
+
+    mock_sync_state["test_mode"] = mode
+    return f"Synchronization test mode set to: {mode}"
+
+
+@mcp.tool()
+def turn_mock_subsystem_on() -> str:
+    """Simulate sending a command that turns a mock subsystem ON."""
+    mock_sync_state["previous_subsystem_status"] = mock_sync_state["subsystem_status"]
+    mock_sync_state["subsystem_status"] = "ON"
+    mock_sync_state["last_command"] = "TURN_ON"
+    mock_sync_state["last_write_time"] = _current_time()
+
+    return (
+        "Command sent: TURN_ON\n"
+        f"Actual subsystem state is now: {mock_sync_state['subsystem_status']}\n"
+        f"Write time: {mock_sync_state['last_write_time']}"
+    )
+
+
+@mcp.tool()
+def turn_mock_subsystem_off() -> str:
+    """Simulate sending a command that turns a mock subsystem OFF."""
+    mock_sync_state["previous_subsystem_status"] = mock_sync_state["subsystem_status"]
+    mock_sync_state["subsystem_status"] = "OFF"
+    mock_sync_state["last_command"] = "TURN_OFF"
+    mock_sync_state["last_write_time"] = _current_time()
+
+    return (
+        "Command sent: TURN_OFF\n"
+        f"Actual subsystem state is now: {mock_sync_state['subsystem_status']}\n"
+        f"Write time: {mock_sync_state['last_write_time']}"
+    )
+
+
+@mcp.tool()
+def read_mock_telemetry() -> str:
+    """Read mock telemetry. Can return normal, delayed, or stale data depending on test mode."""
+    mode = mock_sync_state["test_mode"]
+
+    if mode == "delayed":
+        time.sleep(4)
+
+    if mode == "stale_once":
+        reported_status = mock_sync_state["previous_subsystem_status"]
+        mock_sync_state["test_mode"] = "normal"
+    else:
+        reported_status = mock_sync_state["subsystem_status"]
+
+    mock_sync_state["last_read_time"] = _current_time()
+
+    return (
+        f"Telemetry mode: {mode}\n"
+        f"Reported telemetry status: {reported_status}\n"
+        f"Actual internal subsystem status: {mock_sync_state['subsystem_status']}\n"
+        f"Last command: {mock_sync_state['last_command']}\n"
+        f"Last write time: {mock_sync_state['last_write_time']}\n"
+        f"Telemetry read time: {mock_sync_state['last_read_time']}"
+    )
 
 
 if __name__ == "__main__":

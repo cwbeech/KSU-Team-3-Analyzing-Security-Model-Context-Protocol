@@ -281,7 +281,6 @@ def read_mock_telemetry() -> str:
     mock_sync_state["last_read_time"] = _current_time()
 
     return (
-        f"Telemetry mode: {mode}\n"
         f"Reported telemetry status: {reported_status}\n"
         f"Last command: {mock_sync_state['last_command']}\n"
         f"Last write time: {mock_sync_state['last_write_time']}\n"

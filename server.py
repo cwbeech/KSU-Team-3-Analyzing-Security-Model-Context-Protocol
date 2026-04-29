@@ -205,87 +205,75 @@ def get_telemetry_status() -> str:
         return f"Error: {e}"
     
 # -------------------------------
-# Mock Telemetry Synchronization Test Tools
+# Mock Telemetry + Command System
+# For Testing Latency & Synchronization
 # -------------------------------
 
-mock_sync_state = {
-    "subsystem_status": "OFF",
-    "previous_subsystem_status": "OFF",
-    "test_mode": "normal",  # normal, delayed, stale_once
-    "last_command": "None",
-    "last_write_time": None,
-    "last_read_time": None
+import time
+
+mock_state = {
+    "status": "OFF",
+    "previous_status": "OFF",
+    "mode": "normal" 
 }
 
 
-def _current_time():
-    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-
-
 @mcp.tool()
-def set_sync_test_mode(mode: str) -> str:
-    """Set synchronization test mode: normal, delayed, or stale_once."""
+def configure_mode(mode: str) -> str:
+    """Configure system behavior mode."""
     allowed_modes = ["normal", "delayed", "stale_once"]
 
     if mode not in allowed_modes:
-        return f"Invalid mode. Choose one of: {allowed_modes}"
+        return "Invalid mode. Use normal, delayed, or stale_once."
 
-    mock_sync_state["test_mode"] = mode
-    return f"Synchronization test mode set to: {mode}"
-
-
-@mcp.tool()
-def turn_mock_subsystem_on() -> str:
-    """Simulate sending a command that turns a mock subsystem ON."""
-    mock_sync_state["previous_subsystem_status"] = mock_sync_state["subsystem_status"]
-    mock_sync_state["subsystem_status"] = "ON"
-    mock_sync_state["last_command"] = "TURN_ON"
-    mock_sync_state["last_write_time"] = _current_time()
-
-    return (
-        "Command sent: TURN_ON\n"
-        f"Actual subsystem state is now: {mock_sync_state['subsystem_status']}\n"
-        f"Write time: {mock_sync_state['last_write_time']}"
-    )
+    mock_state["mode"] = mode
+    return "Mode configured."
 
 
 @mcp.tool()
-def turn_mock_subsystem_off() -> str:
-    """Simulate sending a command that turns a mock subsystem OFF."""
-    mock_sync_state["previous_subsystem_status"] = mock_sync_state["subsystem_status"]
-    mock_sync_state["subsystem_status"] = "OFF"
-    mock_sync_state["last_command"] = "TURN_OFF"
-    mock_sync_state["last_write_time"] = _current_time()
+def execute_command(command: str) -> str:
+    """Execute a system command. Use ON or OFF."""
+    command = command.upper()
 
-    return (
-        "Command sent: TURN_OFF\n"
-        f"Actual subsystem state is now: {mock_sync_state['subsystem_status']}\n"
-        f"Write time: {mock_sync_state['last_write_time']}"
-    )
+    if command not in ["ON", "OFF"]:
+        return "Invalid command."
+
+  
+    mock_state["previous_status"] = mock_state["status"]
+
+    
+    mock_state["status"] = command
+
+    return "Command executed."
 
 
 @mcp.tool()
-def read_mock_telemetry() -> str:
-    """Read mock telemetry. Can return normal, delayed, or stale data depending on test mode."""
-    mode = mock_sync_state["test_mode"]
+def read_status() -> str:
+    """Read system status (may be delayed or stale)."""
+    mode = mock_state["mode"]
 
+   
     if mode == "delayed":
         time.sleep(4)
 
+   
     if mode == "stale_once":
-        reported_status = mock_sync_state["previous_subsystem_status"]
-        mock_sync_state["test_mode"] = "normal"
+        reported_status = mock_state["previous_status"]
+        mock_state["mode"] = "normal"  
     else:
-        reported_status = mock_sync_state["subsystem_status"]
+        reported_status = mock_state["status"]
 
-    mock_sync_state["last_read_time"] = _current_time()
+   
+    return f"Subsystem status: {reported_status}"
 
-    return (
-        f"Reported telemetry status: {reported_status}\n"
-        f"Last command: {mock_sync_state['last_command']}\n"
-        f"Last write time: {mock_sync_state['last_write_time']}\n"
-        f"Telemetry read time: {mock_sync_state['last_read_time']}"
-    )
+
+@mcp.tool()
+def reset_system() -> str:
+    """Reset system state to OFF and normal mode."""
+    mock_state["status"] = "OFF"
+    mock_state["previous_status"] = "OFF"
+    mock_state["mode"] = "normal"
+    return "System reset."
 
 
 if __name__ == "__main__":

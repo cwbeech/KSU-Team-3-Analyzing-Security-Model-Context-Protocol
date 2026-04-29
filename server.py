@@ -214,7 +214,7 @@ import time
 mock_state = {
     "status": "OFF",
     "previous_status": "OFF",
-    "mode": "normal" 
+    "mode": "stale_once" 
 }
 
 

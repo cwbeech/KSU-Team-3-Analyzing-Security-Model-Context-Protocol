@@ -279,6 +279,7 @@ def reset_system() -> str:
 if __name__ == "__main__":
     try:
         print("Starting MCP server 'cfs-commander' on stdio", file=sys.stderr)
+        print("Running on http://127.0.0.1:5000", file=sys.stderr)
         mcp.run()
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

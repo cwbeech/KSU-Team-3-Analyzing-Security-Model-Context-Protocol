@@ -84,12 +84,22 @@ cfs_commands.set_attitude_demo(yaw_deg=10.0, pitch_deg=5.0, roll_deg=-3.0)
 
 | Tool                                              | Description                               |
 | ------------------------------------------------- | ----------------------------------------- |
+| `count-r(str)`                                    | Count number of Rs in a string            |
+| `count_vowels(str)`                               | Count number of vowels in a string        |
+| `count-r(str)`                                    | Count number of Rs in a string            |
+| `enable_telemetry()`                              | Enable telemetry streaming and status report-ing from the cFS environment |
 | `message_cFS()`                                   | Send ES NOOP command                      |
 | `sample_noop()`                                   | Send sample_app NOOP                      |
 | `sample_reset_counters()`                         | Reset sample_app counters                 |
 | `sample_process()`                                | Trigger sample_app process                |
 | `sample_display_param(val_u32, val_i16, val_str)` | Display parameters                        |
 | `set_attitude_demo(yaw_deg, pitch_deg, roll_deg)` | Set attitude (requires VM implementation) |
+| `get_recent_events()`                             | Retrieve recently generated cFS event messages and system logs |
+| `get_telemetry_status()`                          | Retrieve current telemetry connection and data stream status information |
+| `configure_mode()`                                | Configure telemetry synchronization and latency testing modes |
+| `execute command()`                               | Send operational commands to cFS subsystems through MCP |
+| `read_status()`                                   | Retrieve current subsystem telemetry and execution state |
+| `reset_system()`                                  | Reset subsystem state and telemetry synchronization variables |
 
 ---
 
